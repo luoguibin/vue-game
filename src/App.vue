@@ -1,28 +1,56 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <login v-if="!userInfo.token"></login>
+    <game v-else :token="userInfo.token"></game>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import { mapState } from "vuex";
 
 export default {
-  name: 'app',
+  name: "app",
+
   components: {
-    HelloWorld
+    game: () => import("@/views/game"),
+    login: () => import("@/views/login")
+  },
+
+  data() {
+    return {};
+  },
+
+  mounted() {
+    this.init();
+    window.app = this;
+  },
+
+  computed: {
+    ...mapState({
+      userInfo: state => state.userInfo
+    })
+  },
+
+  methods: {
+    init() {}
   }
-}
+};
 </script>
 
 <style>
+* {
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body,
 #app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+  height: 100%;
+}
+
+#app {
+  box-sizing: border-box;
+  overflow: hidden;
 }
 </style>
