@@ -1,7 +1,9 @@
+import GameScene from "./game-scene";
+
 class GameOrder {
 
     dealOrder(order) {
-        console.log(JSON.parse(JSON.stringify(order)));
+        GameScene.dealOrder(order)
     }
 }
 

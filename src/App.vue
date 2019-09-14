@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <login v-if="!userInfo.token"></login>
-    <game v-else :token="userInfo.token"></game>
+    <game v-else></game>
   </div>
 </template>
 
