@@ -1,6 +1,8 @@
 import MapCenter from "./map-center";
 import ViewControl from "./view-control";
 import GameOrder from "./game-order";
+import GameConst from "./game-const";
+import Tween from "./tween";
 
 class GameMain {
     root = null;
@@ -12,39 +14,50 @@ class GameMain {
     isInit = false;
 
     myModel = null;
+    myId = 0;
+
     modelMap = {};
     mixerMap = {};
     meshObject = new THREE.Object3D();
 
     sTargetId = 0;
+    preTime = 0;
 
     constructor() {
         window.gameInstance = this;
     }
 
-    init(data, root) {
+    initScene(root) {
         this.root = root;
-        console.log("data.mapId", data.mapId)
-        MapCenter.loadMapData(data.mapId)
-            .then(mesh2es => {
-                console.log(mesh2es);
+        this.myId = root.userInfo.id;
+        this._initSRC();
+        this._initControls();
+        this._start();
+        this._initDom(root.$el);
+    }
 
-                this._newPlayer(data, model => {
-                    const object = this.meshObject;
-                    mesh2es.forEach(meshes => {
-                        meshes.forEach(mesh => {
-                            object.add(mesh);
+    initPlayerData(data) {
+        this._newPlayer(data, model => {
+            if (data.id === this.myId) {
+                MapCenter.loadMapData(data.mapId || 0)
+                    .then(mesh2es => {
+                        const object = this.meshObject;
+                        mesh2es.forEach(meshes => {
+                            meshes.forEach(mesh => {
+                                object.add(mesh);
+                            });
                         });
+                        const scene = this.scene;
+                        scene.add(object);
+                        scene.add(model);
+                        this.myModel = model;
+                        this.viewControl.setPoint(model.position);
                     });
-                    const scene = this._initSRC();
-                    scene.add(model);
-                    scene.add(object);
-
-                    this.myModel = model;
-                    this._initControls(model.position);
-                    this._start();
-                });
-            });
+            } else {
+                const scene = this.scene;
+                scene.add(model);
+            }
+        });
     }
 
     _start() {
@@ -53,17 +66,17 @@ class GameMain {
         this.clock = new THREE.Clock();
         this.stats = new Stats();
         this.animate = this.animate.bind(this);
-        this.animate(0);
+        this.animateTest = this.animateTest.bind(this);
+        this.currentAnimate = this.animateTest;
+        this.currentAnimate(0);
+        setTimeout(() => {
+            this.currentAnimate = this.animate;
+        }, 300);
     }
 
     _initSRC() {
-        let scene = this.scene;
-        if (scene) {
-            return scene;
-        } else {
-            scene = new THREE.Scene();
-            // scene.fog = new THREE.Fog(0x444444, 20, 100);
-        }
+        const scene = new THREE.Scene();
+        // scene.fog = new THREE.Fog(0x444444, 20, 100);
         this.scene = scene;
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, autoClear: true });
@@ -87,25 +100,26 @@ class GameMain {
         })
 
         // const gridHelper = new THREE.GridHelper(200, 100, 0x0000ff, 0x808080);
-        // this.scene.add(gridHelper);
-        // const axesHelper = new THREE.AxesHelper(100);
-        // this.scene.add(axesHelper);
-        return scene;
+        // scene.add(gridHelper);
+        const axesHelper = new THREE.AxesHelper(100);
+        scene.add(axesHelper);
     }
 
-    _initControls(position) {
+    _initControls() {
         const viewControl = new ViewControl(this.camera);
         viewControl.setObjects(this.scene.children);
-        viewControl.setPoint(this.myModel.position);
         viewControl.setCall(ViewControl.CALL_UP, (e, type) => {
             let object = e.object;
             if (type === 0) {
                 // const model = this.modelMap[this.myModel.userData.id];
-
-                this.root.sendOrder(
-                    new GameOrder(this.myModel.userData.id)
-                        .setValue(0, 0, 0, 3000, e.point)
-                );
+                const selfId = this.myModel.userData.id,
+                    order = new GameOrder(selfId, GameConst.CG_Person);
+                order.setValue(GameConst.CG_Person,
+                    selfId,
+                    GameConst.CT_Action,
+                    GameConst.CT_Action_Move,
+                    e.point)
+                this.root.sendOrder(order);
             } else {
                 if (object.name === "floor") return;
                 while (object.name !== "RootNode") {
@@ -122,13 +136,8 @@ class GameMain {
         this.viewControl = viewControl;
     }
 
-    dealOrder(order) {
-        if (order.id === 3000) {
-            const position = this.myModel.position,
-                data = order.data;
-            position.x = data.x;
-            position.z = data.z;
-        }
+    getPlayer(id) {
+        return this.modelMap[id];
     }
 
     addPlayer(data) {
@@ -157,32 +166,55 @@ class GameMain {
     }
 
     _newPlayer(data, call) {
-        new THREE.GLTFLoader()
-            .load("models/robot.glb", gltf => {
-                const model = gltf.scene.children[0];
-                model.userData = data;
-                model.traverse(child => {
-                    if (child.isMesh) {
-                        child.castShadow = true;
-                    }
-                });
+        const model = new THREE.Object3D();
+        model.userData = data;
+        this.modelMap[data.id] = model;
 
-                this.modelMap[data.id] = model;
-                call(model);
+        for (let i = 0; i < 8; i++) {
+            const spriteMaterial = new THREE.SpriteMaterial({
+                map: new THREE.TextureLoader().load(require("@/assets/textures/cloud_002.png")),
+                color: 0xffffff,
+                blending: THREE.AdditiveBlending
             });
+            spriteMaterial.transparent = true;
+            const sprite = new THREE.Sprite(spriteMaterial);
+            sprite.position.y = 2.0 + Math.random() * 1;
+            sprite.material.opacity = 0.8;
+            sprite.scale.set(0.3, 0.3 * 1.5);
+            // sprite.rotation.set(0, 0, 0)
+
+            Tween.newTween({ v: 1 })
+                .to({ v: 100 }, 2400)
+                .onUpdate(ratio => {
+                    const v = 5 * ratio + 0.3
+                    sprite.scale.set(v, v * 1.5);
+                    sprite.material.opacity = 0.8 - (sprite.scale.x - 0.3) / 5 * 0.8;
+                })
+                .repeat(Infinity)
+                .start(300 * i);
+
+            model.add(sprite)
+        }
+        call(model);
+
+        // new THREE.GLTFLoader()
+        //     .load("models/robot.glb", gltf => {
+        //         const model = gltf.scene.children[0];
+        //         model.userData = data;
+        //         model.traverse(child => {
+        //             if (child.isMesh) {
+        //                 child.castShadow = true;
+        //             }
+        //         });
+
+        //         this.modelMap[data.id] = model;
+        //         call(model);
+        //     });
     }
 
-    initDom(el, call) {
+    _initDom(el) {
         if (!this.isInit) {
-            if (!this.initCount) this.initCount = 0;
-            this.initCount++;
-            if (this.initCount > 20) {
-                call(false);
-                return;
-            }
-            setTimeout(() => {
-                this.initDom(el, call);
-            }, 300);
+            console.log("_initDom() should be called after _initSRC()");
             return;
         }
         const width = el.clientWidth,
@@ -209,15 +241,20 @@ class GameMain {
         this.width = width;
         this.height = height;
         // this.composer.setSize(width, height);
+    }
 
-        call(true);
+    animateTest(time) {
+        this.preTime = time;
+        this.handle = requestAnimationFrame(this.currentAnimate);
     }
 
     animate(time) {
-        this.isInit && (this.handle = requestAnimationFrame(this.animate));
+        const timeStep = time - this.preTime;
+        this.preTime = time;
+        this.isInit && (this.handle = requestAnimationFrame(this.currentAnimate));
         // this.isInit && setTimeout(this.animate, 1000 / 12);
 
-        TWEEN.update();
+        Tween.update(timeStep);
         this.viewControl.update();
         this.stats.update();
 

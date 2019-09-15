@@ -52,7 +52,6 @@ export default class ViewControl {
         dom.addEventListener("mouseup", this.onMouseUp);
         dom.addEventListener("mouseout", this.onMouseOut);
         dom.addEventListener("wheel", this.onWheel);
-        this._update();
     }
 
     setCall(key, func) {
@@ -64,9 +63,12 @@ export default class ViewControl {
         this.objects = objects;
     }
 
+    /**
+     * 设置相机聚焦点，必须是THREE.Vector3对象
+     * @param {THREE.Vector3} point 
+     */
     setPoint(point) {
         this.point = point;
-        this._update();
     }
 
     release() {
@@ -125,8 +127,6 @@ export default class ViewControl {
         this.zFigh = Math.min(this.zFigh, this.MAX_RADIANS);
         this.xyThea += Math.PI * 2;
         this.xyThea %= Math.PI * 2;
-
-        this._update();
     }
 
     /**
@@ -139,8 +139,6 @@ export default class ViewControl {
         this.radius += e.deltaY / Math.abs(e.deltaY) * this.WHELL_FACTOR;
         this.radius = Math.min(this.radius, this.MAX_RADIUS);
         this.radius = Math.max(this.radius, this.MIN_RADIUS);
-
-        this._update();
     }
 
     onMouseUp(e) {

@@ -14,8 +14,9 @@ export default class {
     // 附加信息
     data = null;
 
-    constructor(fromId) {
+    constructor(fromId, gromGroup) {
         this.fromId = fromId || 0;
+        this.fromGroup = this.fromGroup || 0;
     }
 
     setValue(toGroup, toId, type, id, data) {

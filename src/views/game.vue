@@ -38,6 +38,8 @@ export default {
     document.oncontextmenu = function() {
       return false;
     };
+
+    this.onClickItem("connect");
   },
 
   computed: {
@@ -93,14 +95,12 @@ export default {
         this.items.order.disabled = false;
         this.ws = ws;
 
-        GameScene.init({ id: this.userInfo.id, mapId: 0 }, this);
-        GameScene.initDom(this.$el, flag => {
-          console.log("flag=" + flag);
-        });
+        // 连接成功后初始化游戏场景
+        GameScene.initScene(this);
       };
 
       ws.onmessage = e => {
-        OrderCenter.dealOrder(JSON.parse(e.data));
+        OrderCenter.parseOrder(JSON.parse(e.data));
       };
 
       ws.onerror = e => {

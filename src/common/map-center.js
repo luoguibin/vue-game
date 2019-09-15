@@ -42,13 +42,6 @@ class MapManager {
             const position = sunLight.position,
                 radians = { v: -Math.PI / 2 };
             position.set(100, 300, 0);
-            // new TWEEN.Tween(radians)
-            //     .to({ v: Math.PI * 4 / 3 }, 20 * 1000)
-            //     .repeat(Infinity)
-            //     .onUpdate(() => {
-            //         position.set(Math.sin(radians.v) * 100, Math.cos(radians.v) * 100, 0);
-            //     })
-            //     .start();
 
             const meshes = [];
             meshes.push(new THREE.AmbientLight(0x666666));
