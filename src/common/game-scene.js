@@ -54,6 +54,9 @@ class GameMain {
                         this.viewControl.setPoint(model.position);
                     });
             } else {
+                if (this.getPlayer(data.id)) {
+                    return;
+                }
                 const scene = this.scene;
                 scene.add(model);
             }
