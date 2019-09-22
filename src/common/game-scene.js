@@ -60,6 +60,21 @@ class GameMain {
         });
     }
 
+    addPlayerDatas(datas) {
+        const scene = this.scene;
+        datas.forEach(data => {
+            if (data.id === this.myId) {
+                return;
+            }
+            if (this.getPlayer(data.id)) {
+                return;
+            }
+            this._newPlayer(data, model => {
+                scene.add(model);
+            })
+        })
+    }
+
     _start() {
         console.log("GameScene start()")
         this.isInit = true;

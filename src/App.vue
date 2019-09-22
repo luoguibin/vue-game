@@ -1,19 +1,20 @@
 <template>
   <div id="app">
-    <login v-if="!userInfo.token"></login>
-    <game v-else></game>
+    <game v-if="userInfo.token"></game>
+    <login-dialog></login-dialog>
   </div>
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { mapState, mapActions } from "vuex";
+import LoginDialog from "@/views/login-dialog";
 
 export default {
   name: "app",
 
   components: {
     game: () => import("@/views/game"),
-    login: () => import("@/views/login")
+    LoginDialog
   },
 
   data() {
@@ -21,18 +22,23 @@ export default {
   },
 
   mounted() {
-    this.init();
     window.app = this;
+    this.init();
+    if (!this.userInfo.token) {
+      this.showLogin();
+    }
   },
 
   computed: {
     ...mapState({
-      userInfo: state => state.userInfo
+      userInfo: state => state.user
     })
   },
 
   methods: {
-    init() {}
+    init() {},
+
+    ...mapActions(["showLogin"])
   }
 };
 </script>

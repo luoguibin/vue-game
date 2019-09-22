@@ -8,6 +8,7 @@ class OrderCenter {
         switch (order.type || 0) {
             case GameConst.CT_Data:
                 this.parseDataOrder(order);
+                break;
             case GameConst.CT_Action:
                 this.parseActionOrder(order);
                 break;
@@ -23,7 +24,9 @@ class OrderCenter {
                 // 连接成功后返回角色数据，初始化游戏场景
                 GameScene.initPlayerData(order.data);
                 break;
-
+            case GameConst.CT_Data_Players:
+                GameScene.addPlayerDatas(order.data);
+                break;
             default:
                 break;
         }
@@ -46,7 +49,6 @@ class OrderCenter {
         const position = model.position,
             data = order.data,
             val = Math.sqrt(Math.pow(data.x - position.x, 2) + Math.pow(data.z - position.z, 2));
-        
         let tween = model.tween;
         tween && tween.remove();
         tween = Tween.newTween(position)

@@ -6,18 +6,22 @@
     custom-class="login-dialog"
   >
     <el-form ref="ruleForm" :model="account" :rules="formRules" label-width="80px">
-      <el-form-item label="账 号" prop="uId">
-        <el-input v-model.number="account.uId" type="tel"></el-input>
+      <el-form-item label="账 号" prop="id">
+        <el-input v-model.number="account.id" type="tel"></el-input>
       </el-form-item>
+
       <el-form-item label="昵 称" prop="name" v-if="signUpValue">
         <el-input v-model.trim="account.name"></el-input>
       </el-form-item>
+
       <el-form-item label="密 码" prop="pw">
-        <el-input v-model="account.pw" show-password clearable></el-input>
+        <el-input @keyup.native.enter="onLoginCreate" v-model="account.pw" show-password clearable></el-input>
       </el-form-item>
+
       <el-form-item label="重复密码" prop="pw2" v-if="signUpValue">
-        <el-input v-model="account.pw2" show-password clearable></el-input>
+        <el-input @keyup.native.enter="onLoginCreate" v-model="account.pw2" show-password clearable></el-input>
       </el-form-item>
+
       <el-form-item>
         <el-button
           type="primary"
@@ -25,6 +29,7 @@
           :loading="inRequest"
         >{{signUpValue ? "注册" : "登录"}}</el-button>
         <el-switch
+          v-if="false"
           style="float: right; margin-top: 20px;"
           v-model="signUpValue"
           @change="signUpChange"
@@ -38,27 +43,32 @@
 
 <script>
 import { mapState, mapActions } from "vuex";
-import { loginByAccount, createUser } from "@/api/index";
+import { loginByAccount, createUser } from "@/api";
+import { baseUrl } from "@/api/config";
+
+const resetUserIconUrl = function(userInfo) {
+  userInfo.iconUrl = userInfo.iconUrl
+    ? baseUrl + userInfo.iconUrl.substr(1)
+    : "/peotry/favicon.ico";
+};
 
 export default {
-  name: "login",
-
+  name: "login-dialog",
   data() {
     return {
-      visible: true,
+      visible: false,
       signUpValue: false,
       inRequest: false,
       account: {
-        type: "game",
-        uId: 15625045984,
-        // name: "",
-        pw: "123456"
-        // pw2: "123456"
+        id: null,
+        name: "",
+        pw: "",
+        pw2: ""
       },
       formRules: {
-        uId: [
+        id: [
           { required: true, message: "请输入手机号码", trigger: "blur" },
-          { validator: this.validateUId, trigger: "blur" }
+          { validator: this.validateId, trigger: "blur" }
         ],
         name: [
           { required: true, min: 1, message: "请输入昵称", trigger: "blur" }
@@ -80,20 +90,27 @@ export default {
       }
     };
   },
-
-  mounted() {
-    window.login = this;
+  watch: {
+    loginCount() {
+      this.visible = true;
+    }
   },
-
+  computed: {
+    ...mapState({
+      loginCount: state => state.loginCount
+    })
+  },
+  created() {
+    window.loginDialog = this;
+  },
   methods: {
-    validateUId(rule, value, callback) {
+    validateId(rule, value, callback) {
       if (!/^1[34578]\d{9}$/.test(value)) {
         callback(new Error("请输入11位手机号码"));
       } else {
         callback();
       }
     },
-
     validatePass2(rule, value, callback) {
       if (value !== this.account.pw) {
         callback(new Error("两次密码不一致"));
@@ -101,62 +118,64 @@ export default {
         callback();
       }
     },
-
     signUpChange() {
       this.$refs.ruleForm.clearValidate();
       this.inRequest = false;
+      if (this.signUpValue) {
+        const account = this.account;
+        account.id = null;
+        account.name = "";
+        account.pw = "";
+        account.pw2 = "";
+      }
     },
-
     onLoginCreate() {
       this.$refs.ruleForm.validate(valid => {
-        if (valid) {
-          this.inRequest = true;
-          if (this.signUpValue) {
-            createUser(this.account)
-              .then(resp => {
-                if (resp.data.code === 1000) {
-                  const userInfo = resp.data.data;
-                  this.setUserInfo(userInfo);
-                  this.$message("注册成功");
-                  this.signUpValue = false;
-                  this.visible = false;
-                } else {
-                  this.$message.error(resp.data.msg);
-                }
-              })
-              .finally(() => {
-                this.inRequest = false;
-              });
-          } else {
-            loginByAccount(this.account)
-              .then(resp => {
-                if (resp.data.code === 1000) {
-                  const userInfo = resp.data.data;
-                  this.setUserInfo(userInfo);
-                  this.visible = false;
-                } else {
-                  this.$message.error(resp.data.msg);
-                }
-              })
-              .finally(() => {
-                this.inRequest = false;
-              });
-          }
-        } else {
+        if (!valid) {
           this.$message.warning("请输入表单内容");
+          return;
         }
+
+        this.inRequest = true;
+        const account = this.account;
+        let method, params, successMsg;
+
+        if (this.signUpValue) {
+          method = createUser;
+          params = account;
+          successMsg = "注册成功";
+        } else {
+          method = loginByAccount;
+          params = { id: account.id, pw: account.pw };
+        }
+
+        method(params)
+          .then(resp => {
+            const userInfo = resp.data.data;
+            resetUserIconUrl(userInfo);
+            this.setUserInfo(userInfo);
+
+            if (successMsg) {
+              this.$message.success(successMsg);
+            }
+            this.visible = false;
+            this.signUpValue = false;
+          })
+          .finally(() => {
+            this.inRequest = false;
+          });
       });
     },
-
     ...mapActions({
-      setUserInfo: "setUserInfo"
+      setUserInfo: "setUser"
     })
   }
 };
 </script>
 
-<style>
+<style scoped>
 .login-dialog {
+  width: 80%;
   max-width: 500px;
 }
 </style>
