@@ -34,8 +34,9 @@ export default {
         window.decodeURIComponent(location.href);
       return;
     }
+    console.log(keyVals)
     this.token = keyVals.token;
-    this.id - keyVals.id;
+    this.id = +keyVals.id;
     // sessionStorage.setItem("sghen_game_token", token);
   }
 };
