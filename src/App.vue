@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <game v-if="token" :token="token"></game>
+    <game v-if="token" :token="token" :id="id"></game>
   </div>
 </template>
 
@@ -14,24 +14,29 @@ export default {
 
   data() {
     return {
+      id: null,
       token: "" // sessionStorage.getItem("sghen_game_token") || ""
     };
   },
 
   mounted() {
     window.app = this;
-    if (!this.token) {
-      const search = location.search;
-      const token = search.replace("?token=", "");
-      if (!token) {
-        location.href =
-          "http://www.sghen.cn/#/blank?login_direct=" +
-          window.decodeURIComponent(location.href);
-        return;
-      }
-      this.token = token;
-      // sessionStorage.setItem("sghen_game_token", token);
+    const search = location.search.substr(1);
+    const keyVals = {};
+    search.split("&").forEach(o => {
+      const keyVal = o.split("=");
+      const obj = {};
+      keyVals[keyVal[0]] = keyVal[1];
+    });
+    if (!keyVals.token || !keyVals.id) {
+      location.href =
+        "http://www.sghen.cn/#/blank?login_direct=" +
+        window.decodeURIComponent(location.href);
+      return;
     }
+    this.token = keyVals.token;
+    this.id - keyVals.id;
+    // sessionStorage.setItem("sghen_game_token", token);
   }
 };
 </script>

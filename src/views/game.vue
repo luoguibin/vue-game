@@ -19,7 +19,7 @@ import GameScene from "../common/game-scene";
 export default {
   name: "game",
 
-  props: ["token"],
+  props: ["token", "id"],
 
   data() {
     return {

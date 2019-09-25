@@ -29,7 +29,7 @@ class GameMain {
 
     initScene(root) {
         this.root = root;
-        this.myId = root.userInfo.id;
+        this.myId = root.id;
         this._initSRC();
         this._initControls();
         this._start();
