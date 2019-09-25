@@ -14,4 +14,5 @@ export default {
     CT_Data: 4000,
     CT_Data_Player: 4001,
     CT_Data_Players: 4002,
+    CT_Data_Remove: 4003,
 }

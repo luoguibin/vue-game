@@ -27,6 +27,9 @@ class OrderCenter {
             case GameConst.CT_Data_Players:
                 GameScene.addPlayerDatas(order.data);
                 break;
+            case GameConst.CT_Data_Remove:
+                GameScene.removePlayer(order.toId);
+                break;
             default:
                 break;
         }
