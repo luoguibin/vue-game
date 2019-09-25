@@ -12,14 +12,14 @@
 </template>
 
 <script>
-import { mapState } from "vuex";
-
 import { wsUrl } from "@/api/config";
 import OrderCenter from "../common/order-center";
 import GameScene from "../common/game-scene";
 
 export default {
   name: "game",
+
+  props: ["token"],
 
   data() {
     return {
@@ -40,12 +40,6 @@ export default {
     };
 
     this.onClickItem("connect");
-  },
-
-  computed: {
-    ...mapState({
-      userInfo: state => state.user
-    })
   },
 
   methods: {
@@ -82,7 +76,7 @@ export default {
         return;
       }
 
-      const ws = new WebSocket(wsUrl + "?token=" + this.userInfo.token);
+      const ws = new WebSocket(wsUrl + "?token=" + this.token);
       if (!ws) {
         console.log("ws create error");
         return;

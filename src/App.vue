@@ -1,44 +1,37 @@
 <template>
   <div id="app">
-    <game v-if="userInfo.token"></game>
-    <login-dialog></login-dialog>
+    <game v-if="token" :token="token"></game>
   </div>
 </template>
 
 <script>
-import { mapState, mapActions } from "vuex";
-import LoginDialog from "@/views/login-dialog";
-
 export default {
   name: "app",
 
   components: {
-    game: () => import("@/views/game"),
-    LoginDialog
+    game: () => import("@/views/game")
   },
 
   data() {
-    return {};
+    return {
+      token: "" // sessionStorage.getItem("sghen_game_token") || ""
+    };
   },
 
   mounted() {
     window.app = this;
-    this.init();
-    if (!this.userInfo.token) {
-      this.showLogin();
+    if (!this.token) {
+      const search = location.search;
+      const token = search.replace("?token=", "");
+      if (!token) {
+        location.href =
+          "http://www.sghen.cn/index.html?login_direct=" +
+          window.decodeURIComponent(location.href);
+        return;
+      }
+      this.token = token;
+      // sessionStorage.setItem("sghen_game_token", token);
     }
-  },
-
-  computed: {
-    ...mapState({
-      userInfo: state => state.user
-    })
-  },
-
-  methods: {
-    init() {},
-
-    ...mapActions(["showLogin"])
   }
 };
 </script>
