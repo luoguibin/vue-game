@@ -25,7 +25,7 @@ export default {
       const token = search.replace("?token=", "");
       if (!token) {
         location.href =
-          "http://www.sghen.cn/index.html?login_direct=" +
+          "http://www.sghen.cn/#/blank?login_direct=" +
           window.decodeURIComponent(location.href);
         return;
       }
