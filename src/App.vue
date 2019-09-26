@@ -5,6 +5,8 @@
 </template>
 
 <script>
+import { loginUrl } from '@/api/config'
+
 export default {
   name: "app",
 
@@ -30,7 +32,7 @@ export default {
     });
     if (!keyVals.token || !keyVals.id) {
       location.href =
-        "http://www.sghen.cn/#/blank?login_direct=" +
+        loginUrl + "?login_direct=" +
         window.decodeURIComponent(location.href);
       return;
     }

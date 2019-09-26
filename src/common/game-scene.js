@@ -36,8 +36,11 @@ class GameMain {
         this._initDom(root.$el);
     }
 
-    initPlayerData(data) {
+    addPlayerData(data) {
         this._newPlayer(data, model => {
+            model.position.x = data.x;
+            model.position.z = data.z;
+
             if (data.id === this.myId) {
                 MapCenter.loadMapData(data.mapId || 0)
                     .then(mesh2es => {
@@ -70,6 +73,8 @@ class GameMain {
                 return;
             }
             this._newPlayer(data, model => {
+                model.position.x = data.x;
+                model.position.z = data.z;
                 scene.add(model);
             })
         })
@@ -153,22 +158,7 @@ class GameMain {
 
     getPlayer(id) {
         return this.modelMap[id];
-    }
-
-    addPlayer(data) {
-        if (!this.scene) {
-            setTimeout(() => {
-                this.addPlayer(data);
-            }, 300);
-            return;
-        }
-        if (data.id === this.myModel.userData.id)
-            return;
-        this.removePlayer(data.id);
-        this._newPlayer(data, model => {
-            this.scene.add(model);
-        });
-    }
+    }   
 
     removePlayer(id) {
         if (id === this.myModel.userData.id)
@@ -256,6 +246,10 @@ class GameMain {
         this.width = width;
         this.height = height;
         // this.composer.setSize(width, height);
+
+        // window.addEventListener('visibilitychange', e => {
+        //     if (document.visibilityState === 'hidden') {}
+        // })
     }
 
     animateTest(time) {
