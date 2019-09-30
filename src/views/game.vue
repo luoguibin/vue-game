@@ -243,8 +243,10 @@ export default {
   position: fixed;
   bottom: 50px;
   right: 10px;
-  width: 260px;
-  height: 500px;
+  max-width: 260px;
+  width: 30%;
+  max-height: 500px;
+  height: 70%;
   z-index: 100;
   background-color: rgba(0, 0, 0, 0.6);
   color: #ffffff;
@@ -274,8 +276,10 @@ export default {
   background-color: rgba(207, 207, 207, 0.9);
   border-radius: 10px;
   margin: auto;
-  width: 500px;
-  height: 400px;
+  max-width: 500px;
+  width: 95%;
+  max-height: 400px;
+  height: 70%;
   z-index: 200;
 
   .close {
