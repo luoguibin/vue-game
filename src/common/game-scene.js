@@ -37,6 +37,7 @@ class GameMain {
     }
 
     addPlayerData(data) {
+        this.root.addFriends([data]);
         this._newPlayer(data, model => {
             model.position.x = data.x;
             model.position.z = data.z;
@@ -64,6 +65,7 @@ class GameMain {
     }
 
     addPlayerDatas(datas) {
+        this.root.addFriends(datas);
         const scene = this.scene;
         datas.forEach(data => {
             if (data.id === this.myId) {
@@ -78,6 +80,10 @@ class GameMain {
                 scene.add(model);
             })
         })
+    }
+
+    parsePersonMsg(order) {
+        this.root.addPersonMsg(order);
     }
 
     _start() {
@@ -183,23 +189,46 @@ class GameMain {
             });
             spriteMaterial.transparent = true;
             const sprite = new THREE.Sprite(spriteMaterial);
-            sprite.position.y = 2.0 + Math.random() * 1;
-            sprite.material.opacity = 0.8;
-            sprite.scale.set(0.3, 0.3 * 1.5);
-            // sprite.rotation.set(0, 0, 0)
+            sprite.position.y = 2.0 + Math.random() * 0.5;
+            sprite.material.opacity = 0.6;
+            sprite.scale.set(0.6, 0.6 * 1.5);
+            sprite.rotation.set(0, 0, Math.PI * (i % 2));
 
             Tween.newTween({ v: 1 })
                 .to({ v: 100 }, 2400)
                 .onUpdate(ratio => {
-                    const v = 5 * ratio + 0.3
+                    const v = 4 * ratio + 0.6
                     sprite.scale.set(v, v * 1.5);
-                    sprite.material.opacity = 0.8 - (sprite.scale.x - 0.3) / 5 * 0.8;
+                    sprite.material.opacity = 0.6 - (sprite.scale.x - 0.3) / 5 * 0.6;
                 })
                 .repeat(Infinity)
                 .start(300 * i);
 
             model.add(sprite)
         }
+
+        const spriteMaterial = new THREE.SpriteMaterial({
+            map: new THREE.TextureLoader().load(require("@/assets/textures/lightning_001.png")),
+            color: 0xffffff,
+            blending: THREE.AdditiveBlending
+        });
+        spriteMaterial.transparent = true;
+        const sprite = new THREE.Sprite(spriteMaterial);
+        sprite.position.y = 2.0 + Math.random() * 1;
+        sprite.scale.set(5, 5);
+        sprite.material.opacity = 0;
+
+        Tween.newTween({ v: 1 })
+            .to({ v: 100 }, 1400)
+            .onUpdate(ratio => {
+                sprite.material.opacity = 0.8 * (1 - ratio);
+            })
+            .delay(5000)
+            .repeat(Infinity)
+            .start();
+
+        model.add(sprite)
+
         call(model);
 
         // new THREE.GLTFLoader()
@@ -281,6 +310,7 @@ class GameMain {
 
     release() {
         cancelAnimationFrame(this.handle);
+        Tween.release();
 
         this.isInit = false;
         if (this.renderer) {

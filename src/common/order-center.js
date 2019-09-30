@@ -12,7 +12,8 @@ class OrderCenter {
             case GameConst.CT_Action:
                 this.parseActionOrder(order);
                 break;
-
+            case GameConst.CT_MSG:
+                this.parseMsgOrder(order);
             default:
                 break;
         }
@@ -60,6 +61,17 @@ class OrderCenter {
             .to({x: data.x, z: data.z}, val * (100 - model.userData.speed))
             .start();
         model.tween = tween;
+    }
+
+    parseMsgOrder(order) {
+        switch (order.id) {
+            case GameConst.CT_MSG_PERSON:
+                GameScene.parsePersonMsg(order)
+                break;
+
+            default:
+                break;
+        }
     }
 }
 
