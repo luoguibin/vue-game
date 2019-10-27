@@ -10,6 +10,7 @@ export default class Tween {
     repeatCount = 1;
     currentRepeat = 0;
 
+    delayTime = 0;
     duration = 1000;
     currentTime = 0;
 
@@ -24,7 +25,8 @@ export default class Tween {
 
     static tweens = [];
     static tweenId = 1000;
-    static isTest = false
+    static isTest = false;
+
     static update(timeStep) {
         if (Tween.isTest) {
             return;
@@ -41,6 +43,14 @@ export default class Tween {
         })
     }
 
+    static release() {
+        const tweens = Tween.tweens,
+            len = tweens.length;
+        for (let i = len - 1; i >= 0; i--) {
+            tweens.pop();
+        }
+    }
+
     to(endVal, duration) {
         this.endVal = endVal || {};
         this.duration = duration || 1000;
@@ -49,6 +59,11 @@ export default class Tween {
 
     repeat(repeatCount) {
         this.repeatCount = repeatCount;
+        return this;
+    }
+
+    delay(time) {
+        this.delayTime = time;
         return this;
     }
 
@@ -90,22 +105,42 @@ export default class Tween {
     }
 
     _update(timeStep) {
-        this.currentTime += timeStep;
+        this.currentTime += timeStep || 33;
+        if (this.delayTime > 0) {
+            // console.log("delayTime:", this.delayTime, this.currentTime, this.ratio)
+            if (this.currentTime < this.delayTime) {
+                return;
+            }
+            this.currentTime = this.currentTime - this.delayTime;
+            this.delayTime = -this.delayTime;
+        }
+        // console.log("currentTime:", this.currentTime, this.ratio)
+
         // console.log(this.currentTime, this.currentRepeat)
-        if (this.currentTime > this.duration) {
+        let ratio;
+        if (this.currentTime >= this.duration) {
             if (this.repeatCount === Infinity) {
                 this.currentTime %= this.duration;
+
+                if (this.delayTime !== 0) {
+                    ratio = 1;
+                } else {
+                    ratio = this.currentTime / this.duration;
+                }
             } else {
                 this.currentRepeat++;
                 if (this.currentRepeat > this.repeatCount) {
                     this.currentTime = this.duration;
                     this.remove();
                 }
+                ratio = 1;
             }
+            this.delayTime = -this.delayTime;
+        } else {
+            ratio = this.currentTime / this.duration
         }
 
-        const ratio = this.currentTime / this.duration,
-            startVal = this.startVal,
+        const startVal = this.startVal,
             endVal = this.endVal,
             val = this.val;
         for (const key in val) {

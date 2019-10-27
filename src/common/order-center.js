@@ -12,7 +12,8 @@ class OrderCenter {
             case GameConst.CT_Action:
                 this.parseActionOrder(order);
                 break;
-
+            case GameConst.CT_MSG:
+                this.parseMsgOrder(order);
             default:
                 break;
         }
@@ -21,13 +22,15 @@ class OrderCenter {
     parseDataOrder(order) {
         switch (order.id) {
             case GameConst.CT_Data_Player:
-                // 连接成功后返回角色数据，初始化游戏场景
-                GameScene.initPlayerData(order.data);
+                // 创建登陆角色
+                GameScene.addPlayerData(order.data);
                 break;
             case GameConst.CT_Data_Players:
-                GameScene.addPlayerDatas(order.data);
+                // 创建在线角色
+                GameScene.addPlayerDatas(order.data || []);
                 break;
             case GameConst.CT_Data_Remove:
+                // 移除下线角色
                 GameScene.removePlayer(order.toId);
                 break;
             default:
@@ -58,6 +61,17 @@ class OrderCenter {
             .to({x: data.x, z: data.z}, val * (100 - model.userData.speed))
             .start();
         model.tween = tween;
+    }
+
+    parseMsgOrder(order) {
+        switch (order.id) {
+            case GameConst.CT_MSG_PERSON:
+                GameScene.parsePersonMsg(order)
+                break;
+
+            default:
+                break;
+        }
     }
 }
 

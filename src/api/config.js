@@ -1,1 +1,2 @@
 export const wsUrl = process.env.NODE_ENV === 'production' ? 'ws://gapi.sghen.cn/ws' : 'ws://localhost:8086/ws'
+export const loginUrl = process.env.NODE_ENV === 'production' ? 'http://www.sghen.cn/#/blank' : 'http://localhost:8080/#/blank'
