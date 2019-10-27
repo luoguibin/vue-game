@@ -52,6 +52,7 @@ class GameMain {
                         scene.add(model);
                         this.myModel = model;
                         this.viewControl.setPoint(model.position);
+                        this._initHeartBeat();
                     });
             } else {
                 const scene = this.scene;
@@ -60,7 +61,7 @@ class GameMain {
         });
     }
 
-    addPlayerDatas(datas) {
+    addPlayerDatas(datas = []) {
         const scene = this.scene;
         datas.forEach(data => {
             if (data.id === this.myId) {
@@ -87,6 +88,18 @@ class GameMain {
         setTimeout(() => {
             this.currentAnimate = this.animate;
         }, 300);
+    }
+
+    _initHeartBeat() {
+        this.heartBeat = setInterval(() => {
+            const selfId = this.myModel.userData.id,
+                order = new GameOrder(selfId, GameConst.CG_Person);
+            order.setValue(GameConst.CG_Person,
+                selfId,
+                GameConst.CT_Const,
+                GameConst.CT_Const_Heart)
+            this.root.sendOrder(order);
+        }, 10000);
     }
 
     _initSRC() {
@@ -287,6 +300,7 @@ class GameMain {
 
     release() {
         cancelAnimationFrame(this.handle);
+        clearInterval(this.heartBeat)
 
         this.isInit = false;
         if (this.renderer) {

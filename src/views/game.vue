@@ -128,6 +128,7 @@ export default {
      * @description 释放连接
      */
     releaseGame() {
+      GameScene.release();
       this.ws && this.ws.close();
     }
   }
