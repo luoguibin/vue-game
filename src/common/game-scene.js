@@ -177,7 +177,7 @@ class GameMain {
 
     getPlayer(id) {
         return this.modelMap[id];
-    }   
+    }
 
     removePlayer(id) {
         if (id === this.myModel.userData.id)
@@ -189,11 +189,112 @@ class GameMain {
         }
     }
 
-    _newPlayer(data, call) {
-        const model = new THREE.Object3D();
-        model.userData = data;
-        this.modelMap[data.id] = model;
+    newChonglou(model, mixColor, delay) {
+        // 0  1  2  3  4
+        // 9  8  7  6  5
+        const vertices = [
+            new THREE.Vector3(-1, 0.1, 0),
+            new THREE.Vector3(-0.5, 0.1, 0.75),
+            new THREE.Vector3(0, 0.1, 1),
+            new THREE.Vector3(0.5, 0.1, 0.75),
+            new THREE.Vector3(1, 0.1, 0),
+            new THREE.Vector3(1, -0.1, 0),
+            new THREE.Vector3(0.5, -0.1, 0.75),
+            new THREE.Vector3(0, -0.1, 1),
+            new THREE.Vector3(-0.5, -0.1, 0.75),
+            new THREE.Vector3(-1, -0.1, 0)
+        ];
 
+        const faces = [
+            new THREE.Face3(0, 1, 9),
+            new THREE.Face3(1, 8, 9),
+            new THREE.Face3(1, 2, 8),
+            new THREE.Face3(2, 7, 8),
+            new THREE.Face3(2, 3, 7),
+            new THREE.Face3(3, 6, 7),
+            new THREE.Face3(3, 4, 6),
+            new THREE.Face3(4, 5, 6),
+        ];
+
+        const geometry = new THREE.Geometry();
+        geometry.vertices = vertices;
+        geometry.faces = faces;
+        geometry.computeFaceNormals();//计算法向量，会对光照产生影响
+
+        const textureLoader = new THREE.TextureLoader(),
+            planeMap = textureLoader.load(require("@/assets/textures/tail.png"));
+        // planeMap.repeat.set(25, 25);
+        planeMap.wrapS = THREE.RepeatWrapping;
+        planeMap.wrapT = THREE.RepeatWrapping;
+
+        const mapV = [
+            new THREE.Vector2(0, 1),
+            new THREE.Vector2(0.25, 1),
+            new THREE.Vector2(0.5, 1),
+            new THREE.Vector2(0.75, 1),
+            new THREE.Vector2(1, 1),
+            new THREE.Vector2(1, 0),
+            new THREE.Vector2(0.75, 0),
+            new THREE.Vector2(0.5, 0),
+            new THREE.Vector2(0.25, 0),
+            new THREE.Vector2(0, 0)
+        ]
+        geometry.faceVertexUvs[0].push([mapV[0], mapV[1], mapV[9]])
+        geometry.faceVertexUvs[0].push([mapV[1], mapV[8], mapV[9]])
+        geometry.faceVertexUvs[0].push([mapV[1], mapV[2], mapV[8]])
+        geometry.faceVertexUvs[0].push([mapV[2], mapV[7], mapV[8]])
+        geometry.faceVertexUvs[0].push([mapV[2], mapV[3], mapV[7]])
+        geometry.faceVertexUvs[0].push([mapV[3], mapV[6], mapV[7]])
+        geometry.faceVertexUvs[0].push([mapV[3], mapV[4], mapV[6]])
+        geometry.faceVertexUvs[0].push([mapV[4], mapV[5], mapV[6]])
+        geometry.uvsNeedUpdate = true
+
+        const material = new THREE.MeshLambertMaterial({
+            map: planeMap,
+            color: mixColor || 0xffffff,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            side: THREE.DoubleSide,
+            // combine: THREE.MixOperation
+        })
+        material.opacity = 2
+
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.position.y = 3;
+        mesh.scale.set(2.5, 2.5, 2.5)
+        let chonglouY = -0.01
+        Tween.newTween({ v: 0 })
+            .to({ v: -360 }, 3000)
+            .onUpdate(v => {
+                mesh.rotateY(-Math.PI / 50);
+                // mesh.rotateX(-Math.PI / 40);
+                // mesh.rotateZ(-Math.PI / 30);
+                mesh.position.y += chonglouY
+                if (mesh.position.y < 0.3) {
+                    chonglouY = Math.abs(chonglouY)
+                } else if (mesh.position.y > 4.3) {
+                    chonglouY = -Math.abs(chonglouY)
+                }
+            })
+            .repeat(Infinity)
+            .start(delay || 0);
+
+        // const spriteMaterial = new THREE.SpriteMaterial({
+        //     map: new THREE.TextureLoader().load(require("@/assets/textures/sun.png")),
+        //     color: mixColor || 0xffffff,
+        //     transparent: true,
+        //     blending: THREE.AdditiveBlending,
+        //     combine: THREE.MixOperation
+        // });
+        // const sprite = new THREE.Sprite(spriteMaterial);
+        // sprite.scale.set(0.3, 0.3);
+        // sprite.position.set(-1, 0, 0)
+        // mesh.add(sprite)
+
+        model.add(mesh)
+    }
+
+    newSprites8(model) {
         for (let i = 0; i < 8; i++) {
             const spriteMaterial = new THREE.SpriteMaterial({
                 map: new THREE.TextureLoader().load(require("@/assets/textures/cloud_002.png")),
@@ -219,13 +320,15 @@ class GameMain {
 
             model.add(sprite)
         }
+    }
 
+    newLigthning(model) {
         const spriteMaterial = new THREE.SpriteMaterial({
             map: new THREE.TextureLoader().load(require("@/assets/textures/lightning_001.png")),
             color: 0xffffff,
+            transparent: true,
             blending: THREE.AdditiveBlending
         });
-        spriteMaterial.transparent = true;
         const sprite = new THREE.Sprite(spriteMaterial);
         sprite.position.y = 2.0 + Math.random() * 1;
         sprite.scale.set(5, 5);
@@ -241,8 +344,39 @@ class GameMain {
             .start();
 
         model.add(sprite)
+    }
 
+    newSimplePlayer(data, call) {
+        const model = new THREE.Object3D();
+        model.userData = data;
+        this.modelMap[data.id] = model;
+
+        const sphereMaterial = new THREE.MeshLambertMaterial({ color: 0x148acf });
+        const sphere = new THREE.Mesh(
+            new THREE.SphereGeometry(1.6, 10, 10),
+            sphereMaterial
+        );
+        sphere.position.y = 1.5
+        model.add(sphere)
+        const randomNum = Math.random()
+        if (randomNum < 0.33) {
+            this.newChonglou(model)
+            this.newChonglou(model, 0xff0000, 2500)
+            this.newChonglou(model, 0x0000ff, 5000)
+        } else if (randomNum < 0.66) {
+            this.newSprites8(model)
+        } else {
+            this.newLigthning(model)
+        }
         call(model);
+    }
+
+    _newPlayer(data, call) {
+        this.newSimplePlayer(data, call)
+
+        // this.newSprites8(model)
+        // this.newChonglou(model)
+        // this.newLigthning(model)
 
         // new THREE.GLTFLoader()
         //     .load("models/robot.glb", gltf => {
@@ -255,6 +389,10 @@ class GameMain {
         //         });
 
         //         this.modelMap[data.id] = model;
+        //         this.newChonglou(model)
+        //         this.newChonglou(model, 0xff0000, 3000)
+        //         this.newChonglou(model, 0x0000ff, 6000)
+
         //         call(model);
         //     });
     }
