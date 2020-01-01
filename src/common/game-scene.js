@@ -260,19 +260,25 @@ class GameMain {
         material.opacity = 2
 
         const mesh = new THREE.Mesh(geometry, material);
-        mesh.position.y = 3;
+        mesh.position.y = 1.1;
         mesh.scale.set(2.5, 2.5, 2.5)
+
+        const newModel = new THREE.Object3D()
+        newModel.add(mesh)
+        this.scene.add(newModel)
+
         let chonglouY = -0.01
         Tween.newTween({ v: 0 })
             .to({ v: -360 }, 3000)
             .onUpdate(v => {
+                newModel.position.copy(model.position)
                 mesh.rotateY(-Math.PI / 50);
                 // mesh.rotateX(-Math.PI / 40);
                 // mesh.rotateZ(-Math.PI / 30);
                 mesh.position.y += chonglouY
                 if (mesh.position.y < 0.3) {
                     chonglouY = Math.abs(chonglouY)
-                } else if (mesh.position.y > 4.3) {
+                } else if (mesh.position.y > 1.8) {
                     chonglouY = -Math.abs(chonglouY)
                 }
             })
@@ -291,7 +297,7 @@ class GameMain {
         // sprite.position.set(-1, 0, 0)
         // mesh.add(sprite)
 
-        model.add(mesh)
+        // model.add(mesh)
     }
 
     newSprites8(model) {
@@ -372,29 +378,32 @@ class GameMain {
     }
 
     _newPlayer(data, call) {
-        this.newSimplePlayer(data, call)
+        // this.newSimplePlayer(data, call)
 
         // this.newSprites8(model)
         // this.newChonglou(model)
         // this.newLigthning(model)
 
-        // new THREE.GLTFLoader()
-        //     .load("models/robot.glb", gltf => {
-        //         const model = gltf.scene.children[0];
-        //         model.userData = data;
-        //         model.traverse(child => {
-        //             if (child.isMesh) {
-        //                 child.castShadow = true;
-        //             }
-        //         });
+        // "models/robot.glb"
+        new THREE.GLTFLoader()
+            .load("models/dandan/scene.gltf", gltf => {
+                window.gltf = gltf
+                const model = gltf.scene.children[0];
+                model.scale.set(0.05, 0.05, 0.05)
+                model.userData = data;
+                model.traverse(child => {
+                    if (child.isMesh) {
+                        child.castShadow = true;
+                    }
+                });
 
-        //         this.modelMap[data.id] = model;
-        //         this.newChonglou(model)
-        //         this.newChonglou(model, 0xff0000, 3000)
-        //         this.newChonglou(model, 0x0000ff, 6000)
+                this.modelMap[data.id] = model;
+                this.newChonglou(model)
+                // this.newChonglou(model, 0xff0000, 3000)
+                // this.newChonglou(model, 0x0000ff, 6000)
 
-        //         call(model);
-        //     });
+                call(model);
+            });
     }
 
     _initDom(el) {
