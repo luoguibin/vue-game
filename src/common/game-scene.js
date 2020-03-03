@@ -266,12 +266,12 @@ class GameMain {
         const newModel = new THREE.Object3D()
         newModel.add(mesh)
         this.scene.add(newModel)
+        model.followModel = newModel
 
         let chonglouY = -0.01
         Tween.newTween({ v: 0 })
             .to({ v: -360 }, 3000)
             .onUpdate(v => {
-                newModel.position.copy(model.position)
                 mesh.rotateY(-Math.PI / 50);
                 // mesh.rotateX(-Math.PI / 40);
                 // mesh.rotateZ(-Math.PI / 30);

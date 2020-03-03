@@ -59,6 +59,9 @@ class OrderCenter {
         tween && tween.remove();
         tween = Tween.newTween(position)
             .to({x: data.x, z: data.z}, val * (100 - model.userData.speed))
+            .onUpdate(v => {
+                model.followModel.position.copy(model.position)
+            })
             .start();
         model.tween = tween;
     }
