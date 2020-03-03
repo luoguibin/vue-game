@@ -185,6 +185,8 @@ class GameMain {
         const model = this.modelMap[id];
         if (model) {
             this.scene.remove(model);
+            this.scene.remove(model.followModel);
+            model.followModel = null
             delete this.modelMap[id];
         }
     }
